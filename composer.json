@@ -1,0 +1,16 @@
+{
+    "name": "koustubhdudhe/conventional-commit-blt-plugin",
+    "description": "Blt Plugin for conventional commits",
+    "authors": [
+        {
+            "name": "Koustubh Dudhe",
+            "email": "koustubh.dudhe@acquia.com"
+        }
+    ],
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "ConventionalCommit\\": "./src/"
+        }
+    }
+}
