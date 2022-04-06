@@ -3,7 +3,6 @@
 namespace ConventionalCommit\Blt\Plugin\Commands;
 
 use Acquia\Blt\Robo\BltTasks;
-use Symfony\Component\Console\Event\ConsoleCommandEvent;
 use Symfony\Component\Console\Question\Question;
 use Example\Blt\Plugin\Tasks\ConventionalCommitsGitTask;
 
@@ -38,8 +37,21 @@ class ConventionalCommitsCommands extends BltTasks {
             $message[] = implode(PHP_EOL, $answers['footer']);
         }
         $commit_message = implode(PHP_EOL.PHP_EOL,$message);
-        $result = $this->taskGit()->commit($commit_message);
-        return $result;
+        $is_valid = $this->validateCommitMessage($commit_message);
+        if($is_valid) {
+            return $this->taskGit()->commit($commit_message);
+        }
+        else {
+            $gitConfig = $this->getGitConfiguration();
+            $commit_msg_regex = $gitConfig['commit_msg_regex'];
+            $example = $gitConfig['example'];
+            $this->logger->error("Invalid commit.");
+            $this->say("Commit messages header must conform to the regex $commit_msg_regex");
+            if (!empty($example)) {
+                $this->say("Commit message Example: $example");
+            }
+            return 0;
+        }
     }
 
     /**
@@ -88,12 +100,9 @@ class ConventionalCommitsCommands extends BltTasks {
      * Validates Message Header and returns true false.
      */
     protected function validateMessageHeader($commit_message_header) {
-        $jira_id = $this->getConfigValue('git.ticket-id.pattern');
-        $commit_msg_type_regex = $this->getConfigValue('git.commit-type.pattern');
-        $commit_msg_scope_regex = '.{1,20}';
-        $commit_msg_subject_regex = '.{1,100}';
-        $commit_msg_regex = "/($jira_id)?@(${commit_msg_type_regex})(\(${commit_msg_scope_regex}\))?: (${commit_msg_subject_regex})/";
-        $example = 'CON-1234@feat(global): Enable Dblog.';
+        $gitConfig = $this->getGitConfiguration();
+        $commit_msg_regex = $gitConfig['commit_msg_regex'];
+        $example = $gitConfig['example'];
         if (!preg_match($commit_msg_regex, $commit_message_header)) {
             $this->logger->error("Invalid commit message Header");
             $this->say("Commit messages header must conform to the regex $commit_msg_regex");
@@ -103,6 +112,25 @@ class ConventionalCommitsCommands extends BltTasks {
             return 0;
         }
         return 1;
+    }
+
+    /**
+     * Validates Message Header and returns true false.
+     */
+    protected function getGitConfiguration() {
+        $ticket_id = $this->getConfigValue('git.ticket-id.pattern');
+        $commit_msg_type_regex = $this->getConfigValue('git.commit-type.pattern');
+        $commit_msg_scope_regex = '.{1,20}';
+        $commit_msg_subject_regex = '.{1,100}';
+        return [
+            'ticket_id' => $ticket_id,
+            'commit_msg_type_regex' => $commit_msg_type_regex,
+            'commit_msg_scope_regex' => $commit_msg_scope_regex,
+            'commit_msg_subject_regex' => $commit_msg_subject_regex,
+            'commit_msg_regex' => "/($ticket_id)?@(${commit_msg_type_regex})(\(${commit_msg_scope_regex}\))?: (${commit_msg_subject_regex})/",
+            'example' => 'SOMETHING-1234@feat(global): Enable Dblog.'
+        ];
+
     }
 
     /**
