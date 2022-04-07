@@ -10,6 +10,8 @@ In your project, require the plugin with Composer:
 
 Add Below Configurations in the blt.yml file
 
+Run `blt blt:init:git-hooks`.
+
 Search for and replace the following placeholders within this file:
 ```
 git:
