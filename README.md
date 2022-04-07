@@ -8,9 +8,9 @@ In your project, require the plugin with Composer:
 
 `composer require koustubhdudhe/conventional-commit-blt-plugin`
 
-Add Below Configurations in the blt.yml file
-
 Run `blt blt:init:git-hooks`.
+
+Add Below Configurations in the blt.yml file
 
 Search for and replace the following placeholders within this file:
 ```
